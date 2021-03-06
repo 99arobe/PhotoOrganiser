@@ -30,8 +30,11 @@ fmt = "%Y-%m-%d %H-%M-%S"
 problems = []
 
 # Get all the JPEGs in the source folder.
-photos = os.listdir(sourceDir)
-photos = [ x for x in photos if x[-4:] == '.jpg' or x[-4:] == '.JPG' ]
+nestedPhotos = []
+for roots,dirs,files in os.walk(sourceDir):
+    for file in files:
+        if file.endswith(".jpg") or file.endswith(".JPG"):
+            nestedPhotos.append(os.path.join(roots,file))
 
 # Prepare to output as processing occurs
 lastMonth = 0
@@ -46,9 +49,8 @@ if not os.path.exists(errorDir):
 # Copy photos into year and month subfolders. Name the copies according to
 # their timestamps. If more than one photo has the same timestamp, add
 # suffixes 'a', 'b', etc. to the names. 
-for photo in photos:
-  # print "Processing %s..." % photo
-  original = sourceDir + '/' + photo
+for photo in nestedPhotos:
+  original = photo
   suffix = 'a'
   try:
     pDate = photoDate(original)
@@ -56,7 +58,7 @@ for photo in photos:
     mo = pDate.month
 
     if not lastYear == yr or not lastMonth == mo:
-      sys.stdout.write('\nProcessing %04d-%02d...' % (yr, mo))
+      sys.stdout.write('\nProcessing %04d-%02d...\n' % (yr, mo))
       lastMonth = mo
       lastYear = yr
     else:
@@ -73,6 +75,7 @@ for photo in photos:
       duplicate = destDir + '/%04d/%02d/%s.jpg' % (yr, mo, newname)
       suffix = chr(ord(suffix) + 1)
     shutil.copy2(original, duplicate)
+    print "%s" % duplicate
   except Exception:
     shutil.copy2(original, errorDir + photo)
     problems.append(photo)
