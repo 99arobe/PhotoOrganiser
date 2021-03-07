@@ -48,10 +48,10 @@ problems = []
 
 # Get all the JPEGs in the source folder.
 imageExtensions = ('.jpg', '.jpeg')
-nestedPhotos = find(sourceDir, imageExtensions)
+photos = find(sourceDir, imageExtensions)
 
 sourceDirSize = size(sourceDir)
-print "Found %s (%s) photos in: %s" % (len(nestedPhotos), sourceDirSize, sourceDir)
+print "Found %s (%s) photos in: %s" % (len(photos), sourceDirSize, sourceDir)
 
 # Prepare to output as processing occurs
 lastMonth = 0
@@ -68,7 +68,7 @@ writtenPhotos = []
 # Copy photos into year and month subfolders. Name the copies according to
 # their timestamps. If more than one photo has the same timestamp, add
 # suffixes 'a', 'b', etc. to the names. 
-for photo in nestedPhotos:
+for photo in photos:
   original = photo
   suffix = 'a'
   try:
