@@ -21,13 +21,14 @@ def size(path):
 
 def find(directory, extensions):
     "Find files in the directory matching the tuple of extensions"
-    files = []
-    for roots,dirs,files in os.walk(sourceDir):
+    found = []
+
+    for roots,dirs,files in os.walk(directory):
         for file in files:
             if file.lower().endswith(extensions):
-                files.append(os.path.join(roots,file))
+                found.append(os.path.join(roots,file))
 
-    return files
+    return found
 
 
 ###################### Main program ########################
@@ -46,13 +47,8 @@ fmt = "%Y-%m-%d %H-%M-%S"
 problems = []
 
 # Get all the JPEGs in the source folder.
-nestedPhotos = []
-for roots,dirs,files in os.walk(sourceDir):
-    #print "searching %s %s %s" % (roots, dirs, file)
-    for file in files:
-        #if file.endswith(".jpg") or file.endswith(".JPG"):
-        if file.lower().endswith(('.jpg', 'jpeg')):
-            nestedPhotos.append(os.path.join(roots,file))
+imageExtensions = ('.jpg', '.jpeg')
+nestedPhotos = find(sourceDir, imageExtensions)
 
 sourceDirSize = size(sourceDir)
 print "Found %s (%s) photos in: %s" % (len(nestedPhotos), sourceDirSize, sourceDir)
