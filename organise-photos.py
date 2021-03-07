@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+## I still need to extract videos. I can get the exif data using exiftool rather than sips
+## I've got the basics of a command comment out below but i need to get python to call it with a pipe
+## and then extract the right date. i should also add a fallback to get file creation date or modification
+## date as well. then do the same for movies
+
 import sys
 import os, shutil
 import subprocess
@@ -10,7 +15,19 @@ from datetime import datetime
 
 def photoDate(f):
   "Return the date/time on which the given photo was taken."
+  return photoDateWithExiftool(f)
+  #return photoDateWithSips(f)
 
+def photoDateWithExiftool(f):
+  "Uses exiftool to locate the creation date metadata for a given file. Slower, but more accurate than sips"
+  ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
+  output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+  ps.wait()
+
+  return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+
+def photoDateWithSips(f):
+  "Uses sips to locate the creation date metadata for a given file. Faster, but less accurate than exiftool"
   cDate = subprocess.check_output(['sips', '-g', 'creation', f])
   cDate = cDate.split('\n')[1].lstrip().split(': ')[1]
   return datetime.strptime(cDate, "%Y:%m:%d %H:%M:%S")
@@ -20,7 +37,7 @@ def size(path):
     return subprocess.check_output(['du','-sh', path]).split()[0].decode('utf-8')
 
 def find(directory, extensions):
-    "Find files in the directory matching the tuple of extensions"
+    "Find files in the directory and sub directories matching the tuple of extensions"
     found = []
 
     for roots,dirs,files in os.walk(directory):
@@ -46,12 +63,21 @@ fmt = "%Y-%m-%d %H-%M-%S"
 # The problem files.
 problems = []
 
-# Get all the JPEGs in the source folder.
+# Get all the images in the source folder.
 imageExtensions = ('.jpg', '.jpeg')
 photos = find(sourceDir, imageExtensions)
 
+# Get all the vidoes in the source folder.
+videoExtensions = ('.mov')
+videos = find(sourceDir, videoExtensions)
+
 sourceDirSize = size(sourceDir)
-print "Found %s (%s) photos in: %s" % (len(photos), sourceDirSize, sourceDir)
+print "%s of media found in: %s" % (sourceDirSize, sourceDir)
+print "Found %s photos matching extensions: %s" % (len(photos), imageExtensions)
+print "Found %s videos matching extensions: %s" % (len(videos), videoExtensions)
+print "Preparing to copy into %s" % destDir
+
+print "%s" % videos
 
 # Prepare to output as processing occurs
 lastMonth = 0
