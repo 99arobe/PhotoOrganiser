@@ -20,6 +20,14 @@ def photoDate(f):
 
 def photoDateWithExiftool(f):
   "Uses exiftool to locate the creation date metadata for a given file. Slower, but more accurate than sips"
+
+  # Check if 'exiftool' is installed
+  from distutils.spawn import find_executable
+  if find_executable("exiftool") is None:
+    print "Cannot find exiftool. Please install exiftool"
+    sys.exit()
+
+  # Obtain metadata using exiftool for the date the file was originally created (used for naming the file later)
   ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
   output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
   ps.wait()
