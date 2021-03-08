@@ -107,11 +107,11 @@ fmt = "%Y-%m-%d %H-%M-%S"
 problems = []
 
 # Get all the images in the source folder.
-imageExtensions = ('.jpg', '.jpeg', '.heic')
+imageExtensions = ('.jpg', '.jpeg', '.heic', '.png')
 photos = find(sourceDir, imageExtensions)
 
 # Get all the vidoes in the source folder.
-videoExtensions = ('.mov')
+videoExtensions = ('.mov', '.3gp', '.avi', '.mp4') 
 videos = find(sourceDir, videoExtensions)
 
 sourceDirSize = size(sourceDir)
@@ -135,10 +135,10 @@ if not os.path.exists(errorDir):
 writtenPhotos = []
 
 # Copy photos into year and month subfolders. Name the copies according to
-# their timestamps. If more than one photo has the same timestamp, add
-# suffixes 'a', 'b', etc. to the names. 
-for photo in photos:
-  original = photo
+# their timestamps. If more than one photo or videos has the same timestamp,
+# add suffixes 'a', 'b', etc. to the names. 
+for item in photos + videos:
+  original = item
   suffix = 'a'
   try:
     pDate = photoDate(original)
@@ -158,7 +158,7 @@ for photo in photos:
       os.makedirs(thisDestDir)
 
     # Get the extension of the file here as they could be jpg or heic etc
-    extension = os.path.splitext(photo)[1]
+    extension = os.path.splitext(item)[1]
 
     duplicate = thisDestDir + '/%s%s' % (newname, extension)
     while os.path.exists(duplicate):
@@ -166,11 +166,11 @@ for photo in photos:
       duplicate = destDir + '/%04d/%02d/%s%s' % (yr, mo, newname, extension)
       suffix = chr(ord(suffix) + 1)
     shutil.copy2(original, duplicate)
-    writtenPhotos.append(photo)
+    writtenPhotos.append(item)
   except Exception as e:
     filename = os.path.basename(original)
     shutil.copy2(original, errorDir + filename)
-    problems.append(photo)
+    problems.append(item)
   except:
     sys.exit("Execution stopped.")
 
