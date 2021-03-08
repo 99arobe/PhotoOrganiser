@@ -1,9 +1,6 @@
 #!/usr/bin/python
 
-## I still need to extract videos. I can get the exif data using exiftool rather than sips
-## I've got the basics of a command comment out below but i need to get python to call it with a pipe
-## and then extract the right date. i should also add a fallback to get file creation date or modification
-## date as well. then do the same for movies
+# I still need to extract videos.
 
 import sys
 import os, shutil
@@ -15,11 +12,26 @@ from datetime import datetime
 
 def photoDate(f):
   "Return the date/time on which the given photo was taken."
-  return photoDateWithExiftool(f)
-  #return photoDateWithSips(f)
+  
+  photoDate = None
+
+  try:
+    photoDate = photoDateWithExiftool(f)
+  except:
+    print "Error getting date with exiftool for %s. Trying with sips instead" % f
+    try:
+      photoDate = photoDateWithSips(f)
+    except:
+      print "Error getting date with BOTH exiftool and sips. No date is available"
+      raise
+
+  return photoDate
 
 def photoDateWithExiftool(f):
   "Uses exiftool to locate the creation date metadata for a given file. Slower, but more accurate than sips"
+
+  # A useful command to print all available metadata for a given file to the console
+  # exiftool -a -u -g1 [path to file] 
 
   # Check if 'exiftool' is installed
   from distutils.spawn import find_executable
@@ -28,11 +40,34 @@ def photoDateWithExiftool(f):
     sys.exit()
 
   # Obtain metadata using exiftool for the date the file was originally created (used for naming the file later)
-  ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
+  # If the original date is not available, a series of fallbacks occurs for other possible dates
+  ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-DateTimeOriginal', f), stdout=subprocess.PIPE)
   output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
   ps.wait()
 
-  return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+  try:
+    return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+  except:
+    try:
+      ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
+      output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+      ps.wait()
+      return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+    except:
+      try:
+        ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-MediaCreateDate', f), stdout=subprocess.PIPE)
+        output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+        ps.wait()
+        return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+      except:
+        try:
+          ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileModifyDate', f), stdout=subprocess.PIPE)
+          output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+          ps.wait()
+          return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+        except:
+          # No date obtained at all from exiftool
+          raise
 
 def photoDateWithSips(f):
   "Uses sips to locate the creation date metadata for a given file. Faster, but less accurate than exiftool"
@@ -55,13 +90,13 @@ def find(directory, extensions):
 
     return found
 
-
 ###################### Main program ########################
 
 # Where the photos are and where they're going.
 #sourceDir = os.environ['HOME'] + '/Pictures/iPhone Incoming'
 #/Users/aaronrobertson/Pictures/Photos Library.photoslibrary/originals
-sourceDir = os.environ['HOME'] + '/Desktop/backup_Photos Library.photoslibrary/masters'
+sourceDir = os.environ['HOME'] + '/Desktop/photos-sandbox'
+#sourceDir = os.environ['HOME'] + '/Pictures/iPhone/Unsorted'
 destDir = os.environ['HOME'] + '/Pictures/iPhone'
 errorDir = destDir + '/Unsorted/'
 
@@ -72,7 +107,7 @@ fmt = "%Y-%m-%d %H-%M-%S"
 problems = []
 
 # Get all the images in the source folder.
-imageExtensions = ('.jpg', '.jpeg')
+imageExtensions = ('.jpg', '.jpeg', '.heic')
 photos = find(sourceDir, imageExtensions)
 
 # Get all the vidoes in the source folder.
@@ -85,7 +120,7 @@ print "Found %s photos matching extensions: %s" % (len(photos), imageExtensions)
 print "Found %s videos matching extensions: %s" % (len(videos), videoExtensions)
 print "Preparing to copy into %s" % destDir
 
-print "%s" % videos
+#print "%s" % videos
 
 # Prepare to output as processing occurs
 lastMonth = 0
@@ -122,14 +157,17 @@ for photo in photos:
     if not os.path.exists(thisDestDir):
       os.makedirs(thisDestDir)
 
-    duplicate = thisDestDir + '/%s.jpg' % (newname)
+    # Get the extension of the file here as they could be jpg or heic etc
+    extension = os.path.splitext(photo)[1]
+
+    duplicate = thisDestDir + '/%s%s' % (newname, extension)
     while os.path.exists(duplicate):
       newname = pDate.strftime(fmt) + suffix
-      duplicate = destDir + '/%04d/%02d/%s.jpg' % (yr, mo, newname)
+      duplicate = destDir + '/%04d/%02d/%s%s' % (yr, mo, newname, extension)
       suffix = chr(ord(suffix) + 1)
     shutil.copy2(original, duplicate)
     writtenPhotos.append(photo)
-  except Exception:
+  except Exception as e:
     filename = os.path.basename(original)
     shutil.copy2(original, errorDir + filename)
     problems.append(photo)
