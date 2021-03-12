@@ -7,6 +7,7 @@ import os, shutil
 import subprocess
 import os.path
 from datetime import datetime
+from pathlib import Path
 
 ######################## Functions #########################
 
@@ -90,6 +91,15 @@ def find(directory, extensions):
 
     return found
 
+def fileFormats(directory):
+    "Identify all unique file formats in a given directory"
+    extensions = set()
+    for _, _, files in os.walk(directory):   
+        for f in files:
+            ext = Path(f).suffix.lower()
+            extensions.add(ext)
+    return extensions
+
 ###################### Main program ########################
 
 # Where the photos are and where they're going.
@@ -115,12 +125,30 @@ videoExtensions = ('.mov', '.3gp', '.avi', '.mp4')
 videos = find(sourceDir, videoExtensions)
 
 sourceDirSize = size(sourceDir)
+
 print "%s of media found in: %s" % (sourceDirSize, sourceDir)
+print "Searching the source directory for the following file extensions:"
+
+knownExtensions = imageExtensions + videoExtensions
+print knownExtensions
+
+allExtensions = fileFormats(sourceDir)
+missing = []
+for ext in allExtensions:
+  if ext not in knownExtensions:
+    missing.append(ext)
+
+if len(missing) > 0:
+  print "WARNING: The source directory contains files with the following unrecognised file extensions:"
+  print missing
+  print "Consider adding support for the above extensions (using exiftool or similar) if they are valid media formats"
+else:
+  print "No unsupported file extensions were identified in directory. Continuing...."
+
+print "-------------------------------------------------------------"
 print "Found %s photos matching extensions: %s" % (len(photos), imageExtensions)
 print "Found %s videos matching extensions: %s" % (len(videos), videoExtensions)
 print "Preparing to copy into %s" % destDir
-
-#print "%s" % videos
 
 # Prepare to output as processing occurs
 lastMonth = 0
