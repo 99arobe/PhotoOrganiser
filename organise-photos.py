@@ -195,6 +195,7 @@ for item in photos + videos:
     shutil.copy2(original, duplicate)
     writtenPhotos.append(item)
   except Exception as e:
+    print "exception: %s" % e
     filename = os.path.basename(original)
     shutil.copy2(original, errorDir + filename)
     problems.append(item)
