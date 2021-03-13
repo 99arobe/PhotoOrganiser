@@ -166,7 +166,7 @@ writtenPhotos = []
 # add suffixes 'a', 'b', etc. to the names. 
 for item in photos + videos:
   original = item
-  suffix = 'a'
+  suffix = 1 # append to filenames when duplicates occur
   try:
     pDate = photoDate(original)
     yr = pDate.year
@@ -189,9 +189,9 @@ for item in photos + videos:
 
     duplicate = thisDestDir + '/%s%s' % (newname, extension)
     while os.path.exists(duplicate):
-      newname = pDate.strftime(fmt) + suffix
+      newname = pDate.strftime(fmt) + "_" + "%s" % suffix
       duplicate = destDir + '/%04d/%02d/%s%s' % (yr, mo, newname, extension)
-      suffix = chr(ord(suffix) + 1)
+      suffix += 1
     shutil.copy2(original, duplicate)
     writtenPhotos.append(item)
   except Exception as e:
