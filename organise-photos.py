@@ -121,7 +121,7 @@ imageExtensions = ('.jpg', '.jpeg', '.heic', '.png', '.gif')
 photos = find(sourceDir, imageExtensions)
 
 # Get all the vidoes in the source folder.
-videoExtensions = ('.mov', '.3gp', '.avi', '.mp4') 
+videoExtensions = ('.mov', '.3gp', '.avi', '.mp4', '.m4v') 
 videos = find(sourceDir, videoExtensions)
 
 sourceDirSize = size(sourceDir)
