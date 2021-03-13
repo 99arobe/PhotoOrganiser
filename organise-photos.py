@@ -50,13 +50,13 @@ def photoDateWithExiftool(f):
     return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
   except:
     try:
-      ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
+      ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-MediaCreateDate', f), stdout=subprocess.PIPE)
       output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
       ps.wait()
       return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
     except:
       try:
-        ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-MediaCreateDate', f), stdout=subprocess.PIPE)
+        ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
         output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
         ps.wait()
         return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
