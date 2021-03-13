@@ -91,7 +91,7 @@ def find(directory, extensions):
 
     return found
 
-def fileFormats(directory):
+def fileExtensions(directory):
     "Identify all unique file formats in a given directory"
     extensions = set()
     for _, _, files in os.walk(directory):   
@@ -132,9 +132,8 @@ print "Searching the source directory for the following file extensions:"
 knownExtensions = imageExtensions + videoExtensions
 print knownExtensions
 
-allExtensions = fileFormats(sourceDir)
 missing = []
-for ext in allExtensions:
+for ext in fileExtensions(sourceDir):
   if ext not in knownExtensions:
     missing.append(ext)
 
