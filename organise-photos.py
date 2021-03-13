@@ -117,7 +117,7 @@ fmt = "%Y-%m-%d %H-%M-%S"
 problems = []
 
 # Get all the images in the source folder.
-imageExtensions = ('.jpg', '.jpeg', '.heic', '.png')
+imageExtensions = ('.jpg', '.jpeg', '.heic', '.png', '.gif')
 photos = find(sourceDir, imageExtensions)
 
 # Get all the vidoes in the source folder.
