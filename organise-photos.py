@@ -46,29 +46,43 @@ def photoDateWithExiftool(f):
   output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
   ps.wait()
 
+  date = validate(output)
+  if date is not None:
+    return date
+
+  ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-MediaCreateDate', f), stdout=subprocess.PIPE)
+  output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+  ps.wait()
+
+  date = validate(output)
+  if date is not None:
+    return date
+
+  ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
+  output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+  ps.wait()
+
+  date = validate(output)
+  if date is not None:
+    return date
+
+  ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileModifyDate', f), stdout=subprocess.PIPE)
+  output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
+  ps.wait()
+
+  date = validate(output)
+  if date is not None:
+    return date
+
+  # No date obtained at all from exiftool
+  raise
+
+def validate(dateStr):
   try:
-    return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
+    return datetime.strptime(dateStr.strip('\n'), "%Y:%m:%dT%H:%M:%S")
   except:
-    try:
-      ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-MediaCreateDate', f), stdout=subprocess.PIPE)
-      output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
-      ps.wait()
-      return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
-    except:
-      try:
-        ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileCreateDate', f), stdout=subprocess.PIPE)
-        output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
-        ps.wait()
-        return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
-      except:
-        try:
-          ps = subprocess.Popen( ('exiftool', '-s', '-f', '-d', '%Y:%m:%dT%H:%M:%S', '-FileModifyDate', f), stdout=subprocess.PIPE)
-          output = subprocess.check_output(('awk', '{print $3}'), stdin=ps.stdout)
-          ps.wait()
-          return datetime.strptime(output.strip('\n'), "%Y:%m:%dT%H:%M:%S")
-        except:
-          # No date obtained at all from exiftool
-          raise
+    return None
+  
 
 def photoDateWithSips(f):
   "Uses sips to locate the creation date metadata for a given file. Faster, but less accurate than exiftool"
