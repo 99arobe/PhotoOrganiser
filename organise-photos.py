@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-# I still need to extract videos.
-
 import sys
 import os, shutil
 import subprocess
@@ -114,6 +112,10 @@ def fileExtensions(directory):
             extensions.add(ext)
     return extensions
 
+def completionPercentage():
+  completed = len(writtenPhotos + problems)
+  return ((float(completed) / fileCount) * 100)
+
 ###################### Main program ########################
 
 # Where the photos are and where they're going.
@@ -127,9 +129,6 @@ errorDir = destDir + '/Unsorted/'
 # The format for the new file names.
 fmt = "%Y-%m-%d %H-%M-%S"
 
-# The problem files.
-problems = []
-
 # Get all the images in the source folder.
 imageExtensions = ('.jpg', '.jpeg', '.heic', '.png', '.gif')
 photos = find(sourceDir, imageExtensions)
@@ -138,10 +137,14 @@ photos = find(sourceDir, imageExtensions)
 videoExtensions = ('.mov', '.3gp', '.avi', '.mp4', '.m4v') 
 videos = find(sourceDir, videoExtensions)
 
+problems = [] # The problem files.
+writtenPhotos = []
+fileCount = len(photos + videos)
+
 sourceDirSize = size(sourceDir)
 
-print "%s of media found in: %s" % (sourceDirSize, sourceDir)
-print "Searching the source directory for the following file extensions:"
+print "Searching %s and found %s media files (%s)" % (sourceDir, fileCount, sourceDirSize)
+print "The following file extensions will be extracted based on the EXIF data:"
 
 knownExtensions = imageExtensions + videoExtensions
 print knownExtensions
@@ -155,13 +158,12 @@ if len(missing) > 0:
   print "WARNING: The source directory contains files with the following unrecognised file extensions:"
   print missing
   print "Consider adding support for the above extensions (using exiftool or similar) if they are valid media formats"
-else:
-  print "No unsupported file extensions were identified in directory. Continuing...."
 
 print "-------------------------------------------------------------"
 print "Found %s photos matching extensions: %s" % (len(photos), imageExtensions)
 print "Found %s videos matching extensions: %s" % (len(videos), videoExtensions)
 print "Preparing to copy into %s" % destDir
+print "-------------------------------------------------------------"
 
 # Prepare to output as processing occurs
 lastMonth = 0
@@ -173,25 +175,23 @@ if not os.path.exists(destDir):
 if not os.path.exists(errorDir):
   os.makedirs(errorDir)
 
-writtenPhotos = []
-
 # Copy photos into year and month subfolders. Name the copies according to
 # their timestamps. If more than one photo or videos has the same timestamp,
-# add suffixes 'a', 'b', etc. to the names. 
+# add suffixes '_1', '_2', etc. to the names. 
 for item in photos + videos:
   original = item
   suffix = 1 # append to filenames when duplicates occur
   try:
+    sys.stdout.write('\rCompleted %0.0f %%' % completionPercentage())
+    sys.stdout.flush()
+
     pDate = photoDate(original)
     yr = pDate.year
     mo = pDate.month
 
     if not lastYear == yr or not lastMonth == mo:
-      #sys.stdout.write('\nProcessing %04d-%02d...\n' % (yr, mo))
       lastMonth = mo
       lastYear = yr
-    else:
-      sys.stdout.write('.')
     
     newname = pDate.strftime(fmt)
     thisDestDir = destDir + '/%04d/%02d' % (yr, mo)
@@ -224,7 +224,6 @@ print "\nSuccessfully wrote %s files to %s which holds %s" % (len(writtenPhotos)
 # Report the problem files, if any.
 if len(problems) > 0:
   print "Warning: Found %s problem files (%s) with missing creation date EXIF data" % (len(problems), errorDirSize)
-  #print "\n".join(problems)
   print "These can be found in: %s" % errorDir
 
 # Write paths of successes and failures to some txt files for reference
