@@ -130,11 +130,11 @@ errorDir = destDir + '/Unsorted/'
 fmt = "%Y-%m-%d %H-%M-%S"
 
 # Get all the images in the source folder.
-imageExtensions = ('.jpg', '.jpeg', '.heic', '.png', '.gif')
+imageExtensions = ('.jpg', '.jpeg', '.heic', '.png', '.gif', '.bmp', '.cr2', '.psd', '.tif')
 photos = find(sourceDir, imageExtensions)
 
 # Get all the vidoes in the source folder.
-videoExtensions = ('.mov', '.3gp', '.avi', '.mp4', '.m4v') 
+videoExtensions = ('.mov', '.3gp', '.avi', '.mp4', '.m4v', '.flv') 
 videos = find(sourceDir, videoExtensions)
 
 problems = [] # The problem files.
