@@ -119,11 +119,9 @@ def completionPercentage():
 ###################### Main program ########################
 
 # Where the photos are and where they're going.
-#sourceDir = os.environ['HOME'] + '/Pictures/iPhone Incoming'
-#/Users/aaronrobertson/Pictures/Photos Library.photoslibrary/originals
-sourceDir = os.environ['HOME'] + '/Desktop/photos-sandbox'
-#sourceDir = os.environ['HOME'] + '/Pictures/iPhone/Unsorted'
-destDir = os.environ['HOME'] + '/Pictures/iPhone'
+sourceDir = os.environ['HOME'] + '/Pictures/to sort'
+
+destDir = os.environ['HOME'] + '/Pictures/iPhone-aaron'
 errorDir = destDir + '/Unsorted/'
 
 # The format for the new file names.
